@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <climits>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -96,6 +97,42 @@ void SConfig::LoadSettings()
 {
   INFO_LOG_FMT(BOOT, "Loading Settings from {}", File::GetUserPath(F_DOLPHINCONFIG_IDX));
   Config::Load();
+}
+
+const std::string& SConfig::GetGameID() const
+{
+  std::lock_guard<std::mutex> lock(m_metadata_lock);
+  return m_game_id;
+}
+
+const std::string& SConfig::GetGameTDBID() const
+{
+  std::lock_guard<std::mutex> lock(m_metadata_lock);
+  return m_gametdb_id;
+}
+
+const std::string& SConfig::GetTitleName() const
+{
+  std::lock_guard<std::mutex> lock(m_metadata_lock);
+  return m_title_name;
+}
+
+const std::string& SConfig::GetTitleDescription() const
+{
+  std::lock_guard<std::mutex> lock(m_metadata_lock);
+  return m_title_description;
+}
+
+u64 SConfig::GetTitleID() const
+{
+  std::lock_guard<std::mutex> lock(m_metadata_lock);
+  return m_title_id;
+}
+
+u16 SConfig::GetRevision() const
+{
+  std::lock_guard<std::mutex> lock(m_metadata_lock);
+  return m_revision;
 }
 
 void SConfig::ResetRunningGameMetadata()
