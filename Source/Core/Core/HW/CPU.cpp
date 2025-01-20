@@ -11,8 +11,9 @@
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Timer.h"
-#include "Core/ConfigManager.h"
 #include "Core/CPUThreadConfigCallback.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/GDBStub.h"
@@ -104,7 +105,11 @@ void CPUManager::Run()
   PowerPC::RoundingModeUpdated(power_pc.GetPPCState());
 
   // Start a separate time tracker thread
-  auto timing = std::thread(&CPUManager::StartTimePlayedTimer, this);
+  std::thread timing;
+  if (Config::Get(Config::MAIN_TIME_TRACKING))
+  {
+    timing = std::thread(&CPUManager::StartTimePlayedTimer, this);
+  }
 
   std::unique_lock state_lock(m_state_change_lock);
   while (m_state != State::PowerDown)
@@ -201,9 +206,11 @@ void CPUManager::Run()
     }
   }
 
-  // m_timer_finish.notify_one();
-  m_time_played_finish_sync.Set();
-  timing.join();
+  if (Config::Get(Config::MAIN_TIME_TRACKING))
+  {
+    m_time_played_finish_sync.Set();
+    timing.join();
+  }
 
   state_lock.unlock();
   Host_UpdateDisasmDialog();
